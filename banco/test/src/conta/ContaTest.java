@@ -6,10 +6,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import funcionalidades.exceptions.EmprestimoException;
-import conta.exceptions.TipoInvalido;
-import interfaceUsuario.dados.DadosCartao;
 
-// meus testes unitários foram focados nos métodos pagarEmprestimo() e pagarParcelaEmprestimo()
+// import conta.exceptions.TipoInvalido;
+// import interfaceUsuario.dados.DadosCartao;
+// import transacao.Boleto;
+
+/*
+NOTAS:
+
+meus testes unitários foram focados nos métodos pagarEmprestimo(), pagarParcelaEmprestimo()
+preciso elaborar: criarCartao(), pagarBoleto() e usar mock/stub
+*/
 
 public class ContaTest {
 
@@ -50,13 +57,14 @@ public class ContaTest {
     @Test
     // teste para pagarParcelaEmprestimo()
     public void pagarParcelaEmprestimo_ParcelaNormal() throws EmprestimoException {
+
         // cenário: empréstimo = 600,00, em 6 parcelas de 100,00
         conta.criarEmprestimo(600.0, 6);
         // saldo inicial após criação: 600,00. criarEmprestimo também aumenta o saldo
         assertEquals(600.0, conta.getSaldo(), 0.0001);
 
         // pagar uma parcela (100,00)
-        conta.pagarEmprestimo();
+        conta.pagarParcelaEmprestimo();
 
         // validações: após pagar, saldo diminui de 600,00 para 500,00, e empréstimo também
         assertEquals(500.0, conta.getSaldo(), 0.0001, "Saldo diminui em 1 parcela");
@@ -78,6 +86,16 @@ public class ContaTest {
         assertEquals(0.0, conta.getEmprestimo(), 0.0001, "Empréstimo zera quando paga o restante");
         assertEquals(0.0, conta.getParcelaEmprestimo(), 0.0001, "ParcelaEmprestimo = 0 se emprestimo = 0");
         assertEquals(50.0, conta.getSaldo(), 0.0001, "Valor restante da parcela é subtraido do saldo");
+    }
+
+    @Test
+    public void pagarParcelaEmprestimo_LancarSeSaldoInsuficiente(){
+        // cenário: saldo tem 50,00 e a parcela é 100,00 -> erro
+    }
+
+    @Test
+    public void criarCartaoClasseBase_LancarTipoInvalido(){
+        // elaborar
     }
 
 
