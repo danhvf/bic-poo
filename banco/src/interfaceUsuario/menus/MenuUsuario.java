@@ -22,7 +22,7 @@ public class MenuUsuario {
     public static final String CHAVES_DISPONIVEIS = "[ESCREVA O TIPO DA CHAVE EXATAMENTE COMO ALGUMAS DESSES TIPOS, IDENTIFICACAO [CPF OU CNPJ]\n" +
             " chave_aleatoria | telefone | email | identificacao";
     public static final String CHAVES_DISPONIVEIS_ALTERACAO = "chave_aleatoria | telefone | email";
-    public static final Scanner TECLADO = new Scanner(System.in);
+    public static Scanner TECLADO = new Scanner(System.in);
 
     public static void iniciar() {
         boolean loop = true;
