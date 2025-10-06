@@ -29,7 +29,7 @@ Classes Testes implementadas para o trabalho:
 - JUnit 5
 - [TestLink](http://vania.ic.uff.br/testlink/index.php) - Projeto de teste: BIC: Testes do BIC-POO 
 - [Apresentação Canva](https://www.canva.com/design/DAEjR5exvtY/OltrLCdcLsvudI5XJOcMng/edit)
-
+- [Plano de Teste](https://github.com/danhvf/bic-poo/blob/main/Relat%C3%B3rio%20de%20Plano%20de%20Testes%20-%20Testlink.pdf)
 
 # Versão do Java 
 
@@ -55,4 +55,34 @@ OpenJDK Runtime Environment (build 18+36-2087)
 OpenJDK 64-Bit Server VM (build 18+36-2087, mixed mode, sharing)
 ```
 
+# Lib e configurações para o projeto
 
+Para a execução bem sucedida do projeto, crie uma pasta *lib/* na raiz do projeto, baixe os .jar abaixo e salve dentro da pasta lib:
+- junit-jupiter-api-5.10.0.jar
+- junit-jupiter-engine-5.10.0.jar
+- mockito-core-5.11.0.jar
+- byte-buddy-1.14.10.jar
+- byte-buddy-agent-1.14.10.jar
+- objenesis-3.3.jar
+
+Em seguida, no IntelliJ IDEA vá em:
+* Menu File → Project Structure → Modules → Dependencies → + → JARs or directories...
+* Selecione todos os .jar da pasta lib, clique em Apply e depois dê OK.
+
+# Estrutura final da lib/
+
+```
+bic-poo/
+ ├── src/                 (código-fonte do sistema)         
+ ├── test/                (código dos testes)
+ ├── lib/                 (bibliotecas externas)
+ │    ├── junit-jupiter-api-5.10.0.jar
+ │    ├── junit-jupiter-engine-5.10.0.jar
+ │    ├── mockito-core-5.11.0.jar
+ │    ├── byte-buddy-1.14.10.jar
+ │    ├── byte-buddy-agent-1.14.10.jar
+ │    └── objenesis-3.3.jar
+ └── (demais pastas e arquivos do projeto)
+```
+
+Após esses passos, o projeto bic-poo estará rodando com JUnit 5 (para testes unitários) e Mockito (para mocks e simulações).
