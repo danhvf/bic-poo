@@ -27,6 +27,7 @@ Classes Testes implementadas para o trabalho:
 # Ferramentas utilizadas para o trabalho
 - [IDE InteliJJ](https://www.jetbrains.com/idea/)
 - JUnit 5
+- Mockito
 - [TestLink](http://vania.ic.uff.br/testlink/index.php) - Projeto de teste: BIC: Testes do BIC-POO 
 - [Apresentação Canva](https://www.canva.com/design/DAEjR5exvtY/OltrLCdcLsvudI5XJOcMng/edit)
 - [Plano de Teste](https://github.com/danhvf/bic-poo/blob/main/Relat%C3%B3rio%20de%20Plano%20de%20Testes%20-%20Testlink.pdf)
