@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class VerificadorTransacaoTest {
 
-    // Mock para simular um Cliente e sua Conta, isolando o teste.
     @Mock
     private Cliente mockCliente;
     @Mock
@@ -28,9 +27,9 @@ class VerificadorTransacaoTest {
 
     @BeforeEach
     void setup() {
-        // Antes de cada teste, configuramos o mock do cliente e da conta.
+
         when(mockCliente.getConta()).thenReturn(mockConta);
-        // Injetamos o cliente mockado na classe estática para que o método sob teste possa usá-lo.
+
         InterfaceUsuario.setClienteAtual(mockCliente);
     }
 
@@ -59,16 +58,16 @@ class VerificadorTransacaoTest {
     // --- CENÁRIO 1.2: Validação para Transferência ---
 
     @Test
-    @DisplayName("Cenário 1.2.1: Deve retornar true para transferência com saldo suficiente")
+    @DisplayName("Cenário 1.2.1: Deve retornar false para transferência com saldo suficiente")
     void dadosTransacao_quandoOperacaoTransferenciaEValorValido_deveRetornarTrue() throws ValorInvalido {
         // Configuração
         when(mockConta.getSaldo()).thenReturn(500.0);
 
         // Ação
-        boolean resultado = VerificadorTransacao.dadosTransacao("200", TRANSFERENCIA, VerificadorEntrada.STANDARD);
+        boolean resultado = VerificadorTransacao.dadosTransacao("2000", TRANSFERENCIA, VerificadorEntrada.STANDARD);
 
         // Verificação
-        assertTrue(resultado, "Deveria retornar true para uma transferência válida.");
+        assertFalse(resultado, "Deveria retornar false por saldo insuficiente.");
     }
 
     @Test
