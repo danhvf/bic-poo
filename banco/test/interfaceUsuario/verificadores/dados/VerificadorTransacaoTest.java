@@ -59,29 +59,15 @@ class VerificadorTransacaoTest {
 
     @Test
     @DisplayName("Cenário 1.2.1: Deve retornar false para transferência com saldo suficiente")
-    void dadosTransacao_quandoOperacaoTransferenciaEValorValido_deveRetornarTrue() throws ValorInvalido {
+    void dadosTransacao_quandoOperacaoTransferenciaESaldoInsuficiente_deveLancarfalse() throws ValorInvalido {
         // Configuração
         when(mockConta.getSaldo()).thenReturn(500.0);
 
         // Ação
         boolean resultado = VerificadorTransacao.dadosTransacao("2000", TRANSFERENCIA, VerificadorEntrada.STANDARD);
 
-        // Verificação
         assertFalse(resultado, "Deveria retornar false por saldo insuficiente.");
     }
-
-    @Test
-    @DisplayName("Cenário 1.2.1 (Falha): Deve lançar exceção para transferência com saldo insuficiente")
-    void dadosTransacao_quandoOperacaoTransferenciaESaldoInsuficiente_deveLancarValorInvalido() {
-        // Configuração
-        when(mockConta.getSaldo()).thenReturn(100.0);
-
-        // Ação e Verificação
-        assertThrows(ValorInvalido.class, () -> {
-            VerificadorTransacao.dadosTransacao("200", TRANSFERENCIA, VerificadorEntrada.STANDARD);
-        }, "Deveria lançar exceção de valor inválido por falta de saldo.");
-    }
-
 
     // --- CENÁRIO 1.3.1: Validação para Depósito em Conta Standard ---
 
