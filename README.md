@@ -36,25 +36,9 @@ Classes Testes implementadas para o trabalho:
 
 Utilizamos a [JDK 18](https://jdk.java.net/) para a realização desse trabalho. Deve ser utilizada essa versão.
 
-# Como instalar e executar o BIC
-```
-git clone https://github.com/Asunnya/bic-poo
-cd exec/jar
-java -jar bic-poo.jar
-```
-## Possíveis erros na execução do .jar
-Caso você tenha problema ao rodar o .jar, listamos alguns erros conhecidos
-```
-Error: LinkageError occurred while loading main class Main
-        java.lang.UnsupportedClassVersionError: Main has been compiled by a more recent version of the Java Runtime (class file version 62.0), this version of the Java Runtime only recognizes class file versions up to 61.0
-```
-Caso você tenha o problema acima, utilize essas versões para rodar o -jar.
+# Como Executar o BIC
 
-```
-openjdk 18 2022-03-22
-OpenJDK Runtime Environment (build 18+36-2087)
-OpenJDK 64-Bit Server VM (build 18+36-2087, mixed mode, sharing)
-```
+Dentro do IntelliJ Idea clonar o seguinte repositório: https://github.com/danhvf/bic-poo
 
 # Lib e configurações para o projeto
 
