@@ -1,8 +1,8 @@
 # Banco BIC: Banco do Instituto de Computação.
 
-**Repositório para o trabalho da disciplina Qualidade e Teste**
+**Repositório para o trabalho da disciplina Qualidade e Teste.**
 
-# Membros do Grupo
+# Integrantes do Grupo
 - Daniel Fontoura
 - Daniele Pimenta
 - Ihrael Chagas
@@ -29,8 +29,8 @@ Classes Testes implementadas para o trabalho:
 - JUnit 5
 - Mockito
 - [TestLink](http://vania.ic.uff.br/testlink/index.php) - Projeto de teste: BIC: Testes do BIC-POO 
-- [Apresentação Canva](https://www.canva.com/design/DAEjR5exvtY/OltrLCdcLsvudI5XJOcMng/edit)
-- [Plano de Teste](https://github.com/danhvf/bic-poo/blob/main/Relat%C3%B3rio%20de%20Plano%20de%20Testes%20-%20Testlink.pdf)
+- [Apresentação Canva](https://www.canva.com/design/DAEjR5exvtY/obrGM-nTaEFjgt6qsD5TBA/view?utm_content=DAEjR5exvtY&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h3837c19ef7)
+- [Plano de Teste](https://github.com/danhvf/bic-poo/blob/main/Relat%C3%B3rio%20da%20Execu%C3%A7%C3%A3o%20do%20Plano%20de%20Testes.pdf)
 
 # Versão do Java 
 
@@ -70,4 +70,4 @@ bic-poo/
  └── (demais pastas e arquivos do projeto)
 ```
 
-Após esses passos, o projeto bic-poo estará rodando com JUnit 5 (para testes unitários) e Mockito (para mocks e simulações).
+Após esses passos, o projeto Banco BIC estará rodando com JUnit 5 e Mockito.
