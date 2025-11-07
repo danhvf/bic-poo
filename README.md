@@ -31,6 +31,8 @@ Classes Testes implementadas para o trabalho:
 - [TestLink](http://vania.ic.uff.br/testlink/index.php) - Projeto de teste: BIC: Testes do BIC-POO 
 - [Apresentação Canva](https://www.canva.com/design/DAEjR5exvtY/obrGM-nTaEFjgt6qsD5TBA/view?utm_content=DAEjR5exvtY&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h3837c19ef7)
 - [Plano de Teste](https://github.com/danhvf/bic-poo/blob/main/Relat%C3%B3rio%20da%20Execu%C3%A7%C3%A3o%20do%20Plano%20de%20Testes.pdf)
+- [Relatório de Entrega 1](https://docs.google.com/document/d/14gag5CEUvWrJpq426JLpU_opf_MbEO9E4zlias3nC8w](https://docs.google.com/document/d/14gag5CEUvWrJpq426JLpU_opf_MbEO9E4zlias3nC8w/edit?usp=sharing )
+- Relatório de Entrega 2 - PENDENTE
 
 # Versão do Java 
 
