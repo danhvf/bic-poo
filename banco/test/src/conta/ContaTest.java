@@ -17,9 +17,11 @@ import utilsBank.databank.DataBank;
 
 // classe principal do mockito para criar mocks:
 import org.mockito.Mockito;
+import org.mockito.MockedStatic;
 
 // importando métodos como when, verify para deixar o código mais limpo:
 import static org.mockito.Mockito.*;
+
 
 public class ContaTest {
     private Conta conta;
@@ -196,6 +198,101 @@ public class ContaTest {
         verify(boletoMock, times(1)).getMultaPorDias();
         verify(boletoMock, times(1)).getDataVencimento();
 
+    }
+
+    @Test
+    public void transferir_ComDadosMockados_ComSucesso() throws Exception {
+
+        // InterfaceUsuario.getDadosTransacao() é um método estático, portanto,
+        // usaremos o tipo de mock MockedStatic, que é uma classe especial do Mockito
+        // para simular métodos estáticos
+
+        try (MockedStatic<interfaceUsuario.InterfaceUsuario> mockInterface =
+                     mockStatic(interfaceUsuario.InterfaceUsuario.class)) {
+
+            // criando conta para testar
+            Conta contaOrigem = new Conta();
+            Conta contaDestino = new Conta();
+            contaOrigem.aumentarSaldo(500.0); // saldo inicial
+
+            // criação de mock do método estático InterfaceUsuario.getDadosTransacao()
+            interfaceUsuario.dados.DadosTransacao dadosMock = mock(interfaceUsuario.dados.DadosTransacao.class);
+
+            // criando clientes fakes e associando às contas criadas
+            cliente.Cliente clienteOrigem = mock(cliente.Cliente.class);
+            cliente.Cliente clienteDestino = mock(cliente.Cliente.class);
+            when(clienteOrigem.getConta()).thenReturn(contaOrigem);
+            when(clienteDestino.getConta()).thenReturn(contaDestino);
+
+            when(dadosMock.getorigem()).thenReturn(clienteOrigem);
+            when(dadosMock.getdestino()).thenReturn(clienteDestino);
+            when(dadosMock.getValor()).thenReturn(200.0);
+            when(dadosMock.getDataAgendada()).thenReturn(null);
+
+            // retorna o mock quando chamar InterfaceUsuario.getDadosTransacao()
+            mockInterface.when(interfaceUsuario.InterfaceUsuario::getDadosTransacao).thenReturn(dadosMock);
+
+            // chama transf real (ela vai criar new Transacao(dadosMock))
+            transacao.Transacao resultado = contaOrigem.transferir();
+
+            // verificações:
+            assertNotNull(resultado, "Transação deve ser criada");
+            assertEquals(300.0, contaOrigem.getSaldo(), 0.0001, "Saldo deve ser reduzido em 200,00");
+            assertEquals(200.0, contaDestino.getSaldo(), 0.0001, "Conta destino deve aumentar + 200,00");
+
+            // garantia que o método estático foi realmente usado
+            mockInterface.verify(interfaceUsuario.InterfaceUsuario::getDadosTransacao, times(1));
+
+        }
+
+    }
+
+    // integração
+
+    @Test
+    public void integracao_TransferenciaEntreContas() throws Exception {
+        // cenário: criar dois clientes, A e B, e realizar transferência
+
+        // criando duas contas
+        conta.Conta contaOrigem = new conta.Conta();
+        conta.Conta contaDestino = new conta.Conta();
+
+        // criando dois clientes fakes só pra associar as contas
+        cliente.Cliente clienteOrigem = mock(cliente.Cliente.class);
+        cliente.Cliente clienteDestino = mock(cliente.Cliente.class);
+        when(clienteOrigem.getConta()).thenReturn(contaOrigem);
+        when(clienteDestino.getConta()).thenReturn(contaDestino);
+
+        // adicionando saldo inicial na conta origem
+        contaOrigem.aumentarSaldo(500.0);
+
+        // criando dados de transaçao reais mas q usa clientes fakes
+        interfaceUsuario.dados.DadosTransacao dados = new interfaceUsuario.dados.DadosTransacao(200.0, clienteDestino, clienteOrigem);
+
+        // mockando o método estático InterfaceUsuario.getDadosTransacao() para retornar esses dados
+        try (MockedStatic<interfaceUsuario.InterfaceUsuario> mockInterface =
+                     mockStatic(interfaceUsuario.InterfaceUsuario.class)) {
+            mockInterface.when(interfaceUsuario.InterfaceUsuario::getDadosTransacao).thenReturn(dados);
+
+            // criando a transf real
+            transacao.Transacao transacao = contaOrigem.transferir();
+
+            // validando integração
+            assertNotNull(transacao, "Transacao deve ser criada com sucesso");
+            assertEquals(300.0, contaOrigem.getSaldo(), 0.0001, "Saldo de origem diminui 200,00");
+            assertEquals(200.0, contaDestino.getSaldo(), 0.0001, "Saldo de destino aumenta 200,00");
+        }
+
+    }
+
+    @Test
+    public void integracao_CriarEPagarEmprestimo() throws Exception {
+        // implementar
+    }
+
+    @Test
+    public void integracao_CriarCartaoStandard() {
+        // implementar
     }
 
 }
