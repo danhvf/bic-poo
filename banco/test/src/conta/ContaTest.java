@@ -14,6 +14,10 @@ import transacao.Boleto;
 import transacao.exceptions.TransacaoException;
 import utilsBank.databank.Data;
 import utilsBank.databank.DataBank;
+import cartao.Cartao;
+import cartao.CartaoDiamond;
+import cartao.CartaoPremium;
+import cartao.CartaoStandard;
 
 // classe principal do mockito para criar mocks:
 import org.mockito.Mockito;
@@ -247,7 +251,8 @@ public class ContaTest {
 
     }
 
-    // integração
+
+    // --- integração ---
 
     @Test
     public void integracao_TransferenciaEntreContas() throws Exception {
@@ -287,12 +292,78 @@ public class ContaTest {
 
     @Test
     public void integracao_CriarEPagarEmprestimo() throws Exception {
-        // implementar
+
+        // criando conta real
+        Conta conta = new Conta();
+
+        // criando empréstimo 500,00 em 5 parcelas
+        conta.criarEmprestimo(500.0, 5);
+
+        // verificando se aumentou saldo
+        assertEquals(500.0, conta.getSaldo(), 0.0001, "Saldo deve aumentar após a criação do empréstimo");
+        assertEquals(500.0, conta.getEmprestimo(), 0.0001, "Valor do empréstimo deve ser 500,00");
+        assertEquals(100.0, conta.getParcelaEmprestimo(), 0.0001, "Parcela 100,00");
+
+        // pagar empréstimo
+        conta.pagarEmprestimo();
+
+        // zerando saldo após pagamento
+        assertEquals(0.0, conta.getEmprestimo(), 0.0001, "Empréstimo deve ser quitado");
+        assertEquals(0.00, conta.getParcelaEmprestimo(), 0.0001, "Parcela também deve ser zerada");
+
     }
 
     @Test
     public void integracao_CriarCartaoStandard() {
-        // implementar
+
+        ContaStandard conta = new ContaStandard();
+
+        // dados fictícios do cartão
+        interfaceUsuario.dados.DadosCartao dadosCartao = mock(interfaceUsuario.dados.DadosCartao.class);
+
+        // chamando método real
+        conta.criarCartao("Daniele Pimenta", dadosCartao);
+
+        // verificando se o cartao foi criado e adicionado na lista de cartoes
+        assertFalse(conta.getCARTEIRA().getListaDeCartoes().isEmpty(), "Lista de cartões " +
+                "não deve estar vazia após criação do cartão");
+
+        assertEquals(1, conta.getCARTEIRA().getListaDeCartoes().size(), "Deve haver 1 cartão criado");
+    }
+
+    @Test
+    public void integracao_CriarCartaoPremium(){
+
+        ContaPremium conta = new ContaPremium();
+
+        interfaceUsuario.dados.DadosCartao dados = mock(interfaceUsuario.dados.DadosCartao.class);
+
+        conta.criarCartao("Daniele Pimenta", dados);
+
+        assertEquals(1, conta.getCARTEIRA().getListaDeCartoes().size());
+
+        Cartao cartao = conta.getCARTEIRA().getListaDeCartoes().get(0); // posiçao 0 da lista
+
+        assertEquals(CartaoPremium.class, cartao.getClass());
+
+    }
+
+    @Test
+    public void integracao_CriarCartaoDiamond(){
+
+        ContaDiamond conta = new ContaDiamond();
+
+        interfaceUsuario.dados.DadosCartao dados = mock(interfaceUsuario.dados.DadosCartao.class);
+
+        conta.criarCartao("Daniele Pimenta", dados);
+
+        assertEquals(1, conta.getCARTEIRA().getListaDeCartoes().size());
+
+        Cartao cartao = conta.getCARTEIRA().getListaDeCartoes().get(0); // posiçao 0 da lista, ou seja,
+                                                                    // pega o primeiro cartao da carteira
+
+        assertEquals(CartaoDiamond.class, cartao.getClass());
+
     }
 
 }
