@@ -175,6 +175,36 @@ class VerificadorTransacaoTest {
         assertFalse(resultado, "Deveria retornar false se o tipo de conta não corresponder a nenhum caso do switch.");
     }
 
+    @Test
+    @DisplayName("Cenário 1.4.1: Depósito com valor zero deve retornar false")
+    void dadosTransacao_depositoValorZero_deveRetornarFalse() throws ValorInvalido {
+        // Lógica do método: if (value > 0.0)
+        when(mockConta.getSaldoTotalDepositado()).thenReturn(0.0);
+
+        boolean resultado = VerificadorTransacao.dadosTransacao("0", DEPOSITO, VerificadorEntrada.STANDARD);
+        assertFalse(resultado, "Depósito de 0 deve ser rejeitado (retornar false).");
+    }
+
+    @Test
+    @DisplayName("Cenário 1.4.2: Depósito com valor negativo deve retornar false")
+    void dadosTransacao_depositoValorNegativo_deveRetornarFalse() throws ValorInvalido {
+        // Diferente da Transferência, o Depósito NÃO chama verificarEntradaValor,
+        // ele faz a checagem if (value > 0.0) internamente.
+        when(mockConta.getSaldoTotalDepositado()).thenReturn(0.0);
+
+        boolean resultado = VerificadorTransacao.dadosTransacao("-50", DEPOSITO, VerificadorEntrada.STANDARD);
+        assertFalse(resultado, "Depósito negativo deve ser rejeitado com false, sem lançar exceção.");
+    }
+
+    @Test
+    @DisplayName("Cenário 1.4.3: Transferência com valor zero deve retornar true")
+    void dadosTransacao_transferenciaValorZero_deveRetornarTrue() throws ValorInvalido {
+        // A lógica verificarEntradaValor checa if (valor < 0.0). Zero passa.
+        when(mockConta.getSaldo()).thenReturn(100.0); // Saldo suficiente
+
+        boolean resultado = VerificadorTransacao.dadosTransacao("0", TRANSFERENCIA, VerificadorEntrada.STANDARD);
+        assertTrue(resultado, "Transferência de valor 0 é permitida pela lógica atual.");
+    }
 // --- CENÁRIOS 2.1: Validação para Pagamento de Fatura ---
 
     @Test
@@ -251,7 +281,38 @@ class VerificadorTransacaoTest {
     }
 
 
-// --- CENÁRIOS 3: Método agendamentoTransacao ---
+
+    @Test
+    @DisplayName("Cenário 2.3.1: Pagar Fatura com valor zero deve retornar true")
+    void valorFatura_pagarValorZero_deveRetornarTrue() throws ValorInvalido {
+        when(mockConta.getSaldo()).thenReturn(100.0);
+        when(mockCarteira.getFatura()).thenReturn(50.0);
+
+        boolean resultado = VerificadorTransacao.valorFatura("0", MenuUsuarioConstantes.PAGAR_FATURA, mockCarteira);
+        assertTrue(resultado, "Pagamento de fatura zerado é permitido.");
+    }
+
+    @Test
+    @DisplayName("Cenário 2.3.2: Pagar Fatura com valor exato da fatura deve retornar true")
+    void valorFatura_pagarValorExato_deveRetornarTrue() throws ValorInvalido {
+        when(mockConta.getSaldo()).thenReturn(1000.0);
+        when(mockCarteira.getFatura()).thenReturn(500.0);
+
+        // Pagar exatamente 500 (valor limite da fatura)
+        boolean resultado = VerificadorTransacao.valorFatura("500", MenuUsuarioConstantes.PAGAR_FATURA, mockCarteira);
+        assertTrue(resultado, "Pagamento do valor total da fatura deve ser permitido.");
+    }
+
+    @Test
+    @DisplayName("Cenário 2.3.3: Aumentar Fatura com valor exato do limite restante")
+    void valorFatura_aumentarLimiteExato_deveRetornarFalse() throws ValorInvalido {
+        // Teste de fronteira: valor == limite
+        when(mockCarteira.getLimiteRestante()).thenReturn(1000.0);
+
+        // A lógica do método para AUMENTAR_FATURA sempre retorna false no final do bloco if.
+        boolean resultado = VerificadorTransacao.valorFatura("1000", MenuUsuarioConstantes.AUMENTAR_FATURA, mockCarteira);
+        assertFalse(resultado, "Aumentar fatura sempre retorna false na implementação atual, mesmo se válido.");
+    }
 
     @Test
     @DisplayName("Cenário 3.1: Deve retornar true para agendamento de transação válido")
@@ -292,5 +353,100 @@ class VerificadorTransacaoTest {
         assertThrows(ValorInvalido.class, () -> {
             VerificadorTransacao.agendamentoTransacao(entrada, VerificadorEntrada.STANDARD);
         }, "Deveria lançar ValorInvalido por causa da data incorreta.");
+    }
+    // --- CENÁRIOS 4: Método verificarBoleto ---
+
+    @Test
+    @DisplayName("Cenário 4.1: Deve retornar true para dados de boleto válidos")
+    void verificarBoleto_quandoDadosValidos_deveRetornarTrue() throws ValorInvalido {
+        // Entrada: Valor (0), Data Vencimento (1), Multa (2)
+        String[] entrada = {"100", "25/12/2025", "10"};
+
+        // O método verifica se valor/multa são positivos e se data é válida.
+        // Como são métodos estáticos internos, assumimos o comportamento padrão para valores corretos.
+        boolean resultado = VerificadorTransacao.verificarBoleto(entrada);
+
+        assertTrue(resultado, "Deveria retornar true para boleto com dados válidos");
+    }
+
+    @Test
+    @DisplayName("Cenário 4.2: Deve retornar false para valor do boleto negativo")
+    void verificarBoleto_quandoValorNegativo_deveRetornarFalse() throws ValorInvalido {
+        String[] entrada = {"-50", "25/12/2025", "10"};
+
+        // O método interno verificarEntradaValorPositivo lança exceção ou retorna false?
+        // Analisando o código: verificarEntradaValorPositivo lança ValorInvalido se < 0.
+        // O verificarBoleto não trata ValorInvalido do verificarEntradaValorPositivo, ele deixa subir.
+        // Mas se o retorno do método auxiliar for 'true' (erro na lógica interna), ele retorna false.
+        // Vamos testar a exceção esperada.
+
+        assertThrows(ValorInvalido.class, () -> {
+            VerificadorTransacao.verificarBoleto(entrada);
+        });
+    }
+
+    @Test
+    @DisplayName("Cenário 4.4: Deve retornar false para data de vencimento inválida")
+    void verificarBoleto_quandoDataInvalida_deveRetornarFalse() throws ValorInvalido {
+        String[] entrada = {"100", "32/01/2025", "10"};
+
+        // VerificadorData.verificarData retorna false para data inválida ou lança exceção.
+        // No código: ele retorna false se cair no catch ou validação lógica.
+        // Se VerificadorData retornar false, verificarBoleto retorna false.
+
+        boolean resultado = VerificadorTransacao.verificarBoleto(entrada);
+        assertFalse(resultado, "Deveria retornar false se a data for inválida");
+    }
+
+    @Test
+    @DisplayName("Cenário 4.5: Deve retornar false se a multa não for um número")
+    void verificarBoleto_quandoMultaNaoNumerica_deveRetornarFalse() throws ValorInvalido {
+        String[] entrada = {"100", "25/12/2025", "dez"};
+
+        // O bloco try-catch dentro de verificarBoleto captura NumberFormatException ao tentar parsear a multa
+        boolean resultado = VerificadorTransacao.verificarBoleto(entrada);
+
+        assertFalse(resultado, "Deveria retornar false e capturar a exceção de formato numérico");
+    }
+
+    @Test
+    @DisplayName("Cenário 4.3: Deve lançar exceção para boleto com multa negativa")
+    void verificarBoleto_quandoMultaNegativa_deveLancarValorInvalido() {
+        // O método verificarEntradaValorPositivo lança exceção para negativos
+        String[] entrada = {"100", "25/12/2025", "-5"};
+
+        assertThrows(ValorInvalido.class, () -> {
+            VerificadorTransacao.verificarBoleto(entrada);
+        }, "Multa negativa deve ser rejeitada.");
+    }
+
+    @Test
+    @DisplayName("Cenário 4.6: Deve retornar true para boleto com valor zero")
+    void verificarBoleto_quandoValorZero_deveRetornarTrue() throws ValorInvalido {
+        // A lógica verifica apenas se valor < 0. Portanto, 0 é aceito.
+        String[] entrada = {"0", "25/12/2025", "10"};
+
+        boolean resultado = VerificadorTransacao.verificarBoleto(entrada);
+        assertTrue(resultado, "Valor zero deveria ser aceito para criação do boleto.");
+    }
+
+    @Test
+    @DisplayName("Cenário 4.7: Deve retornar true para boleto com multa zero")
+    void verificarBoleto_quandoMultaZero_deveRetornarTrue() throws ValorInvalido {
+        String[] entrada = {"100", "25/12/2025", "0"};
+
+        boolean resultado = VerificadorTransacao.verificarBoleto(entrada);
+        assertTrue(resultado, "Multa zero deveria ser aceita.");
+    }
+
+    @Test
+    @DisplayName("Cenário 4.8: Deve lançar exceção para data do boleto com texto inválido")
+    void verificarBoleto_quandoDataTextoInvalido_deveLancarValorInvalido() {
+        // "amanha" não é uma data válida, VerificadorData deve lançar exceção
+        String[] entrada = {"100", "amanha", "10"};
+
+        assertThrows(ValorInvalido.class, () -> {
+            VerificadorTransacao.verificarBoleto(entrada);
+        }, "Data com formato de texto inválido deve lançar exceção.");
     }
 }
