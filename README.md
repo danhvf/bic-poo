@@ -5,7 +5,7 @@
 # Integrantes do Grupo
 - Daniel Fontoura
 - Daniele Pimenta
-- Ihrael Chagas
+- Irhael Chagas
 - João Gabriel Otogali
 
 # O trabalho
