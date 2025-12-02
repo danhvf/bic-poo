@@ -176,4 +176,94 @@ class VerificadorPixTest {
         // Verificação
         assertTrue(resultado, "Deveria retornar true se o tipo de chave não corresponder a nenhum caso do switch.");
     }
+
+    @Test
+    @DisplayName("Cenário 2.3: Confirmação Implícita - Usuário digita qualquer coisa exceto '0'")
+    void chavePix_confirmacaoImplicita() {
+        TECLADO = mockTeclado;
+        // Simulamos usuário digitando "sim", "ok" ou apenas Enter ("")
+        Mockito.when(mockTeclado.nextLine()).thenReturn("sim");
+
+        try (MockedStatic<VerificadorClientes> mocked = Mockito.mockStatic(VerificadorClientes.class)) {
+            // Simulamos chave válida
+            mocked.when(() -> VerificadorClientes.verificarEmail("email@valido.com")).thenReturn(true);
+
+            boolean resultado = VerificadorPix.chavePix("email@valido.com", DadosChavesPix.EMAIL);
+
+            // Retorna false (sucesso na validação), provando que não cancelou
+            assertFalse(resultado);
+        }
+    }
+
+    @Test
+    @DisplayName("Cenário 3.1: Validação EMAIL (Mockado)")
+    void chavePix_validacaoEmail() {
+        TECLADO = mockTeclado;
+        Mockito.when(mockTeclado.nextLine()).thenReturn("1");
+
+        try (MockedStatic<VerificadorClientes> mocked = Mockito.mockStatic(VerificadorClientes.class)) {
+            // Caso 1: Email Válido -> Retorna false (pois o método retorna !validade)
+            mocked.when(() -> VerificadorClientes.verificarEmail("valido@email.com")).thenReturn(true);
+            assertFalse(VerificadorPix.chavePix("valido@email.com", DadosChavesPix.EMAIL));
+
+            // Caso 2: Email Inválido -> Retorna true (erro)
+            mocked.when(() -> VerificadorClientes.verificarEmail("invalido")).thenReturn(false);
+            assertTrue(VerificadorPix.chavePix("invalido", DadosChavesPix.EMAIL));
+        }
+    }
+
+    @Test
+    @DisplayName("Cenário 3.2: Validação IDENTIFICAÇÃO/CPF (Mockado)")
+    void chavePix_validacaoIdentificacao() {
+        TECLADO = mockTeclado;
+        Mockito.when(mockTeclado.nextLine()).thenReturn("1");
+
+        try (MockedStatic<VerificadorClientes> mocked = Mockito.mockStatic(VerificadorClientes.class)) {
+            // Caso 1: CPF Válido
+            mocked.when(() -> VerificadorClientes.verificadorIdentificacao("12345678900")).thenReturn(true);
+            assertFalse(VerificadorPix.chavePix("12345678900", DadosChavesPix.IDENTIFICACAO));
+
+            // Caso 2: CPF Inválido
+            mocked.when(() -> VerificadorClientes.verificadorIdentificacao("000")).thenReturn(false);
+            assertTrue(VerificadorPix.chavePix("000", DadosChavesPix.IDENTIFICACAO));
+        }
+    }
+
+    @Test
+    @DisplayName("Cenário 4.1: Robustez - Chave Aleatória NULA não deve travar o sistema")
+    void chavePix_testeDeCrash_NullPointer() {
+        // EXIGE VERIFICAÇÃO DE NULL NA CLASSE VerificadorPix (método chaveAleatoria)
+        TECLADO = mockTeclado;
+        Mockito.when(mockTeclado.nextLine()).thenReturn("1");
+
+        assertDoesNotThrow(() -> {
+            boolean resultado = VerificadorPix.chavePix(null, DadosChavesPix.CHAVE_ALEATORIA);
+            // Se for null, deve considerar inválido (true)
+            assertTrue(resultado, "Entrada null deve retornar true (inválido) e não lançar erro.");
+        });
+    }
+
+    @Test
+    @DisplayName("Cenário 4.2: Borda - Chave Aleatória com tamanho incorreto")
+    void chavePix_chaveAleatoriaTamanhoIncorreto() {
+        TECLADO = mockTeclado;
+        Mockito.when(mockTeclado.nextLine()).thenReturn("1");
+
+        // Tamanho 0 (Vazia)
+        assertTrue(VerificadorPix.chavePix("", DadosChavesPix.CHAVE_ALEATORIA));
+
+        // Tamanho errado (ex: "abc")
+        assertTrue(VerificadorPix.chavePix("abc", DadosChavesPix.CHAVE_ALEATORIA));
+    }
+
+    @Test
+    @DisplayName("Cenário 4.3: Robustez - Tipo de Chave Null")
+    void chavePix_tipoChaveNull_deveLancarExcecao() {
+        TECLADO = mockTeclado;
+        Mockito.when(mockTeclado.nextLine()).thenReturn("1");
+
+        assertThrows(NullPointerException.class, () -> {
+            VerificadorPix.chavePix("dado", null);
+        });
+    }
 }
