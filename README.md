@@ -51,6 +51,7 @@ Para a execução bem sucedida do projeto, crie uma pasta *lib/* na raiz do proj
 - byte-buddy-1.14.10.jar
 - byte-buddy-agent-1.14.10.jar
 - objenesis-3.3.jar
+- system-lambda-1.2.1
 
 Em seguida, no IntelliJ IDEA vá em:
 * Menu File → Project Structure → Modules → Dependencies → + → JARs or directories...
