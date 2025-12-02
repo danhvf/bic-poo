@@ -17,6 +17,8 @@ import utilsBank.databank.DataBank;
 import cartao.Cartao;
 import cartao.CartaoDiamond;
 import cartao.CartaoPremium;
+import interfaceUsuario.InterfaceUsuario;
+import interfaceUsuario.exceptions.ValorInvalido;
 import cartao.CartaoStandard;
 
 // classe principal do mockito para criar mocks:
@@ -36,8 +38,8 @@ public class ContaTest {
     }
 
     @Test
-    // pagar empréstimo quando saldo for suficiente:
     public void pagarEmprestimo_SeSaldoSuficiente() throws EmprestimoException {
+        // pagar empréstimo quando saldo for suficiente:
 
         // cenário: criar empréstimo de 500,00 com 5 parcelas:
         conta.criarEmprestimo(500.0, 5);
@@ -92,7 +94,9 @@ public class ContaTest {
         conta.saldo = 100.0; // garante ter saldo suficiente para pagar os 50,00
 
         // pagar a última parcela (50,00):
-        conta.pagarEmprestimo();
+        //conta.pagarEmprestimo();
+        // aplicando melhoria pro teste estrutural
+        conta.pagarParcelaEmprestimo();
 
         // validações: empréstimo zera, parcelaEmprestimo também zera, e o saldo reduz em 50,00:
         assertEquals(0.0, conta.getEmprestimo(), 0.0001, "Empréstimo zera quando paga o restante");
@@ -251,6 +255,227 @@ public class ContaTest {
 
     }
 
+
+    // início dos novos testes
+    // obs: testes abaixo foram criados com ajuda de IA
+    // com o intuito de preencher os 80% mínimo, sem sucesso
+
+    @Test
+    public void pagarBoleto_MultaDeAtraso() throws TransacaoException{
+
+        conta.saldo = 1000.0;
+
+        // mockando boleto
+        Boleto boletoMock = mock(Boleto.class);
+        when(boletoMock.getValor()).thenReturn(100.0);
+        when(boletoMock.getMultaPorDias()).thenReturn(10.0); // multa diária
+
+        Data dataMock = mock(Data.class);
+        when(dataMock.calcularIntervalo(any())).thenReturn(-2); // boleto com 2 dias de atraso
+
+        Data dataVenc = mock(Data.class);
+
+        when(boletoMock.getDataVencimento()).thenReturn(dataVenc);
+
+        try (MockedStatic<DataBank> staticMock = mockStatic(DataBank.class)) {
+            staticMock.when(() -> DataBank.criarData(DataBank.SEM_HORA)).thenReturn(dataMock);
+
+            Conta origem = mock(Conta.class);
+            Conta destino = mock(Conta.class);
+
+            when(boletoMock.getContaOrigem()).thenReturn(origem);
+            when(boletoMock.getContaDestino()).thenReturn(destino);
+            doNothing().when(destino).aumentarSaldo(anyDouble());
+            doNothing().when(destino).addHistorico(any());
+            doNothing().when(destino).addNotificacao(any(transacao.Transacao.class));
+            doNothing().when(origem).addHistorico(any());
+
+            conta.pagarBoleto(boletoMock, mock(Cliente.class));
+
+            assertEquals(880.0, conta.getSaldo()); // 100 + 20 de multa
+        }
+
+    }
+
+    @Test
+    public void criarCartao_TipoInvalido_DeveLancarErro() {
+
+        Conta base = new Conta();
+        interfaceUsuario.dados.DadosCartao dados = mock(interfaceUsuario.dados.DadosCartao.class);
+
+        assertThrows(conta.exceptions.TipoInvalido.class,
+                () -> base.criarCartao("Daniele", dados));
+    }
+
+    @Test
+    public void setDinheiroGuardado_Guardar() {
+
+        conta.aumentarSaldo(500.0);
+        conta.setDinheiroGuardado(100.0, interfaceUsuario.menus.MenuUsuario.GUARDAR);
+
+        assertEquals(400.0, conta.getSaldo());
+        assertEquals(100.0, conta.getDinheiroGuardado());
+    }
+
+    @Test
+    public void setDinheiroGuardado_Resgatar() {
+
+        conta.aumentarSaldo(500.0);
+        conta.setDinheiroGuardado(100.0, interfaceUsuario.menus.MenuUsuario.GUARDAR);
+
+        conta.setDinheiroGuardado(100.0, interfaceUsuario.menus.MenuUsuario.RESGATAR);
+
+        assertEquals(500.0, conta.getSaldo());
+        assertEquals(0.0, conta.getDinheiroGuardado());
+    }
+
+    @Test
+    public void modificarChavePix_DeveRetornarTrue() {
+
+        // cria uma conta spy para podermos simular o comportamento de CHAVES_PIX
+        Conta contaSpy = Mockito.spy(new Conta());
+
+        // cria um mock do objeto DadosChavesPix
+        interfaceUsuario.dados.DadosChavesPix dadosMock = mock(interfaceUsuario.dados.DadosChavesPix.class);
+        when(dadosMock.getTipoChave()).thenReturn("email"); // pode ser qualquer string
+
+        // cria um mock da chave Pix
+        transacao.ChavePix chaveMock = mock(transacao.ChavePix.class);
+
+        // substitui a chavePix interna da contaSpy pelo mock
+        // (método protegido, mas spy deixa a gente acessar normalmente)
+        Mockito.doReturn(chaveMock).when(contaSpy).getChavesPix();
+
+        // quando mudarAdicionarChavePix for chamado → retorna true
+        when(chaveMock.mudarAdicionarChavePix(anyString(), any())).thenReturn(true);
+
+        // agora precisamos simular o método estático InterfaceUsuario.getDadosChavePix()
+        try (MockedStatic<interfaceUsuario.InterfaceUsuario> mockStatic =
+                     Mockito.mockStatic(interfaceUsuario.InterfaceUsuario.class)) {
+
+            mockStatic.when(interfaceUsuario.InterfaceUsuario::getDadosChavePix)
+                    .thenReturn(dadosMock);
+
+            // ação
+            boolean resultado = contaSpy.modificarChavePix();
+
+            // verificação
+            assertTrue(resultado);
+        }
+    }
+
+    @Test
+    public void depositar_DeveAumentarSaldo() throws Exception {
+        Conta contaOrigem = new Conta();
+        contaOrigem.aumentarSaldo(0.0);
+
+        try (MockedStatic<interfaceUsuario.InterfaceUsuario> mockInterface =
+                     mockStatic(interfaceUsuario.InterfaceUsuario.class)) {
+
+            interfaceUsuario.dados.DadosTransacao dados =
+                    mock(interfaceUsuario.dados.DadosTransacao.class);
+
+            Cliente cli = mock(Cliente.class);
+            when(cli.getConta()).thenReturn(contaOrigem);
+
+            when(dados.getorigem()).thenReturn(cli);
+            when(dados.getdestino()).thenReturn(cli);
+            when(dados.getValor()).thenReturn(200.0);
+
+            mockInterface.when(interfaceUsuario.InterfaceUsuario::getDadosTransacao)
+                    .thenReturn(dados);
+
+            contaOrigem.depositar();
+
+            assertEquals(200.0, contaOrigem.getSaldo()); // valor na conta origem deve aumentar 200,00
+        }
+    }
+
+    @Test
+    public void pagarFatura_DeveDiminuirSaldoEAumentarLimite() {
+        Conta conta = new Conta();
+        conta.aumentarSaldo(500.0);
+
+        conta.getCARTEIRA().diminuirLimiteAtual(100.0); // simula uso
+        conta.pagarFatura(100.0);
+
+        assertEquals(400.0, conta.getSaldo());
+    }
+
+    @Test
+    public void agendarTransacao_ComSucesso() throws Exception {
+
+        // usamos um spy APENAS aqui
+        Conta contaSpy = Mockito.spy(new Conta());
+
+        try (MockedStatic<InterfaceUsuario> mockStatic =
+                     Mockito.mockStatic(InterfaceUsuario.class)) {
+
+            // mock dos dados da transação
+            interfaceUsuario.dados.DadosTransacao dados =
+                    mock(interfaceUsuario.dados.DadosTransacao.class);
+
+            Data data = mock(Data.class);
+
+            mockStatic.when(InterfaceUsuario::getDadosTransacao)
+                    .thenReturn(dados);
+
+            when(dados.getDataAgendada()).thenReturn(data);
+
+            // mock da transação agendada criada
+            transacao.Transacao t = mock(transacao.Transacao.class);
+
+            // mockar o método estático criarTransacaoAgendada
+            try (MockedStatic<transacao.Transacao> mockTrans =
+                         mockStatic(transacao.Transacao.class)) {
+
+                mockTrans.when(() ->
+                        transacao.Transacao.criarTransacaoAgendada(dados, data)
+                ).thenReturn(t);
+
+                // aqui está a linha correta: agora contaSpy é spy e funciona
+                Mockito.doReturn(true)
+                        .when(contaSpy)
+                        .addTransacaoAgendadas(t);
+
+                // ação
+                transacao.Transacao resultado = contaSpy.agendarTransacao();
+
+                // verificação
+                assertEquals(t, resultado);
+            }
+        }
+    }
+
+    @Test
+    public void diminuirLimiteAtual_DeveAumentarLimiteUsado() {
+        GerenciamentoCartao g = new GerenciamentoCartao();
+
+        g.diminuirLimiteAtual(100.0);
+
+        assertEquals(100.0, g.getFatura());
+    }
+
+    @Test
+    public void getLimiteMaximo_SemCartao_DeveLancarExcecao() {
+        GerenciamentoCartao g = new GerenciamentoCartao();
+
+        assertThrows(ValorInvalido.class, g::getLimiteMaximo);
+    }
+
+    @Test
+    public void getLimiteMaximo_ComCartao_DeveRetornarValor() throws Exception {
+        GerenciamentoCartao g = new GerenciamentoCartao();
+
+        Cartao c = mock(Cartao.class);
+        when(c.getLimiteMaximo()).thenReturn(1000.0);
+
+        g.adicionarNovoCartao(c);
+
+        assertEquals(1000.0, g.getLimiteMaximo());
+    }
+
+   // fim dos novos testes
 
     // --- integração ---
 
