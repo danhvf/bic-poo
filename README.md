@@ -45,13 +45,14 @@ Dentro do IntelliJ Idea clonar o seguinte repositório: https://github.com/danhv
 # Lib e configurações para o projeto
 
 Para a execução bem sucedida do projeto, crie uma pasta *lib/* na raiz do projeto, baixe os .jar abaixo e salve dentro da pasta lib:
-- junit-jupiter-api-5.10.0.jar
+- junit-jupiter:5.8.1.jar
 - junit-jupiter-engine-5.10.0.jar
 - mockito-core-5.11.0.jar
+- mockito-junit-jupiter:5.11.0
 - byte-buddy-1.14.10.jar
 - byte-buddy-agent-1.14.10.jar
 - objenesis-3.3.jar
-- system-lambda-1.2.1
+- system-lambda-1.2.1.jar (Maven: com.github.stefanbirkner:system-lambda:1.2.1)
 
 Em seguida, no IntelliJ IDEA vá em:
 * Menu File → Project Structure → Modules → Dependencies → + → JARs or directories...

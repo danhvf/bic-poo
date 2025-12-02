@@ -18,6 +18,7 @@ import transacao.exceptions.TransacaoException;
 import utilsBank.GeracaoAleatoria;
 import utilsBank.databank.Data;
 import utilsBank.databank.DataBank;
+import java.util.logging.Logger;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -39,6 +40,7 @@ public class Conta implements Serializable {
     protected Double dinheiroGuardado;
     protected Double emprestimo;
     protected Double parcelaEmprestimo;
+    private static final Logger LOGGER = Logger.getLogger(Conta.class.getName());
 
     protected Conta() {
         this.ID_CONTA = GeracaoAleatoria.gerarIdConta(GeracaoAleatoria.TAMANHO_ID_CONTA);
@@ -156,7 +158,9 @@ public class Conta implements Serializable {
 
     public void mostrarCartoes() {
         for (Cartao cartao : this.CARTEIRA.getListaDeCartoes()) {
-            System.out.println(cartao);
+            if (LOGGER.isLoggable(java.util.logging.Level.INFO)) {
+                LOGGER.info(cartao.toString());
+            }
         }
     }
 
@@ -248,7 +252,7 @@ public class Conta implements Serializable {
     }
 
     public boolean hasNotificacoes() {
-        return this.notificacoes.getTransacoes().size() > 0;
+        return !this.notificacoes.getTransacoes().isEmpty();
     }
 
     public void addNotificacao(Transacao transacao) throws TransacaoException {
@@ -310,38 +314,47 @@ public class Conta implements Serializable {
         return this.parcelaEmprestimo;
     }
 
-    public ArrayList<Transacao> getNotificacoes() {
+    public List<Transacao> getNotificacoes() {
         return this.notificacoes.getTransacoes();
     }
 
     public Historico getHistorico() {
         return HISTORICO;
     }
-
     @Override
     public String toString() {
-        String toString = "[CONTA] \n";
+        StringBuilder sb = new StringBuilder("[CONTA]\n");
+
         if (ID_CONTA != null) {
-            toString = toString + "ID_CONTA: " + ID_CONTA + "\n";
+            sb.append("ID_CONTA: ").append(ID_CONTA).append("\n");
         }
         if (saldo != null) {
-            toString = toString + "SALDO " + saldo + "\n";
+            sb.append("SALDO: ").append(saldo).append("\n");
         }
         if (dinheiroGuardado != null) {
-            toString = toString + "DINHEIRO GUARDADO" + dinheiroGuardado + "\n";
+            sb.append("DINHEIRO GUARDADO: ").append(dinheiroGuardado).append("\n");
         }
         if (emprestimo != null) {
-            toString = toString + "EMPRESTIMO " + emprestimo + "\n";
+            sb.append("EMPRESTIMO: ").append(emprestimo).append("\n");
         }
         if (CHAVES_PIX != null) {
-            toString = toString + "" + CHAVES_PIX + "\n";
+            sb.append(CHAVES_PIX).append("\n");
         }
-        toString = toString + "© TODOS OS DIREITOS RESERVADOS AO BIC  " + "\n";
-        return toString;
+
+        sb.append("© TODOS OS DIREITOS RESERVADOS AO BIC\n");
+        return sb.toString();
     }
 
-    public boolean equals(Conta outraConta) {
-        return this.ID_CONTA.equals(outraConta.ID_CONTA);
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Conta outra)) return false;
+        return this.ID_CONTA.equals(outra.ID_CONTA);
+    }
+
+    @Override
+    public int hashCode() {
+        return ID_CONTA.hashCode();
     }
 
 
