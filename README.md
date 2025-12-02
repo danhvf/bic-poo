@@ -53,6 +53,8 @@ Para a execução bem sucedida do projeto, crie uma pasta *lib/* na raiz do proj
 - byte-buddy-agent-1.14.10.jar
 - objenesis-3.3.jar
 - system-lambda-1.2.1.jar (Maven: com.github.stefanbirkner:system-lambda:1.2.1)
+- org.pitest:pitest-command-line:1.15.3
+- org.pitest:pitest-junit5-plugin:1.2.1
 
 Em seguida, no IntelliJ IDEA vá em:
 * Menu File → Project Structure → Modules → Dependencies → + → JARs or directories...
