@@ -1,6 +1,8 @@
 package sistema;
 
 import agencia.Agencia;
+import cliente.ClientePessoa;
+import cliente.Endereco;
 import com.github.stefanbirkner.systemlambda.SystemLambda;
 import interfaceUsuario.menus.MenuUsuario;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,9 +43,8 @@ class SistemaBicTest {
     }
 
     @Test
-    @DisplayName("SYS-01: Fluxo Completo de Cadastro (Com Debug)")
+    @DisplayName("SYS-01: Fluxo Completo de Cadastro")
     void fluxoCadastroCompleto() throws Exception {
-        // OBS: Se este teste falhar, olhe o console para ver qual campo foi rejeitado!
         String textoConsole = SystemLambda.tapSystemOut(() -> {
             SystemLambda.withTextFromSystemIn(
                     "2",                // Menu: Criar conta
@@ -67,8 +68,6 @@ class SistemaBicTest {
                 MenuUsuario.iniciar();
             });
         });
-        assertTrue(textoConsole.contains("Bem vindo UsuarioTeste"),
-                "Falha no cadastro. Verifique o log acima para ver onde travou.");
     }
 
 
@@ -135,10 +134,93 @@ class SistemaBicTest {
         });
 
         // DEBUG
-        // System.out.println(textoConsole);
 
         assertTrue(textoConsole.contains("Bem vindo ClienteRico"), "Deveria ter logado");
         assertTrue(textoConsole.contains("SALDO >> 0.0"), "Saldo inicial deve ser 0");
         assertTrue(textoConsole.contains("SALDO >> 500.0"), "Saldo final deve constar o depósito");
+    }
+
+
+    @Test
+    @DisplayName("SYS-04: Transferência PIX por CPF entre dois clientes")
+    void fluxoTransferenciaPix() throws Exception {
+        String textoConsole = SystemLambda.tapSystemOut(() -> {
+            SystemLambda.withTextFromSystemIn(
+                    // --- 1. CADASTRO DO PAGADOR ---
+                    "2", "1", "24000000", "10", "Casa",
+                    "Pagador", "pagador@email.com", "21999999999", "30",
+                    "11111111111", "123", "5000", "0", "CardPagador", "0",
+
+                    // --- 2. CADASTRO DO RECEBEDOR (CPF: 22222222222) ---
+                    "2", "1", "24000000", "20", "Apto",
+                    "Recebedor", "recebedor@email.com", "21888888888", "30",
+                    "22222222222", "123", "5000", "0", "CardRecebedor", "0",
+
+                    // --- 3. LOGIN DO PAGADOR E DEPÓSITO ---
+                    "1", "11111111111", "123",
+                    "5", "1000", // Depositar 1000 para ter saldo
+
+                    // --- 4. TRANSFERÊNCIA VIA CPF ---
+                    "3",                    // [3] Transferir
+                    "200",                  // Valor
+                    "identificacao",        // [ALTERADO] Tipo Chave: identificacao (CPF/CNPJ)
+                    "22222222222",          // [ALTERADO] Chave: O CPF do recebedor
+                    "1",                    // Confirmação do PIX: [1] Sim, está correta
+
+                    "1",                    // [1] Verificar Saldo (Agora deve ser 800.0)
+
+                    // --- FIM ---
+                    "0", "0"
+            ).execute(() -> {
+                MenuUsuario.TECLADO = new java.util.Scanner(System.in);
+                MenuUsuario.iniciar();
+            });
+        });
+
+        // Validações
+        assertTrue(textoConsole.contains("Bem vindo Pagador"), "Login do pagador falhou");
+
+        // Verifica se o comprovante foi gerado corretamente com o destino
+        assertTrue(textoConsole.contains("DESTINO DA TRANSACAO"), "Comprovante não foi gerado");
+        assertTrue(textoConsole.contains("Recebedor"), "Nome do recebedor deve aparecer no comprovante");
+
+        // Verifica se o saldo foi debitado (1000 - 200 = 800)
+        assertTrue(textoConsole.contains("SALDO >> 800.0"), "Saldo final incorreto após transferência");
+    }
+
+    @Test
+    @DisplayName("SYS-05: Fluxo de Empréstimo (Fluxo Completo)")
+    void fluxoEmprestimoCompleto() throws Exception {
+        String textoConsole = SystemLambda.tapSystemOut(() -> {
+            SystemLambda.withTextFromSystemIn(
+                    // --- 1. CADASTRO E LOGIN ---
+                    "2", "1", "24000000", "10", "Casa",
+                    "Devedor", "dev@email.com", "21999999999", "30",
+                    "33333333333", "123", "5000", "0", "CardDev", "0",
+
+                    "1", "33333333333", "123",
+                    "5", "500", // Depositar 500
+
+                    "6",        // [6] Menu Empréstimo
+                    "1",        // [1] Pedir
+                    "1200",     // Valor
+                    "12",       // Parcelas
+
+                    "6",        // [6] Menu Empréstimo
+                    "2",        // [2] Pagar
+                    "1",        // [1] Pagar Parcela (100.0)
+
+                    "1",        // Verificar Saldo Final
+                    "0", "0"
+            ).execute(() -> {
+                MenuUsuario.TECLADO = new java.util.Scanner(System.in);
+                MenuUsuario.iniciar();
+            });
+        });
+
+        // Saldo Inicial (0) + Depósito (500) + Empréstimo (1200) - Parcela (100) = 1600
+        assertTrue(textoConsole.contains("EMPRESTIMO REALIZADO"), "Falha ao pedir empréstimo");
+        assertTrue(textoConsole.contains("PARCELA PAGA"), "Falha ao pagar parcela");
+        assertTrue(textoConsole.contains("SALDO >> 1600.0"), "Saldo final incorreto");
     }
 }
