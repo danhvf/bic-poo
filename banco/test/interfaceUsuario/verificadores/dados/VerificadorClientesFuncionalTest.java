@@ -21,7 +21,7 @@ class VerificadorClientesFuncionalTest {
                 "maria@gmail.com",     // Email provedor comum
                 "21999998888",         // Celular padrão
                 "30",                  // Idade adulta
-                "12345678901",         // CPF válido
+                "12345678901",         // CPF válido mockado
                 "senhaForte123"        // Senha ok
         };
 
