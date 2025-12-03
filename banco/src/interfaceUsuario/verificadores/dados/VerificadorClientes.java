@@ -7,7 +7,12 @@ import java.util.regex.Matcher;
 
 import static interfaceUsuario.verificadores.dados.VerificadorEntrada.*;
 
+
 public class VerificadorClientes {
+
+    private VerificadorClientes() {
+        throw new IllegalStateException("Utility class");
+    }
 
     private static boolean isAlphabetic(String e) {
         return !NAO_APENAS_ALFABETO.matcher(e).find();
@@ -21,7 +26,7 @@ public class VerificadorClientes {
         try {
             Integer.parseInt(entradaEndereco[0]);
             Integer.parseInt(entradaEndereco[1]);
-            if (!(entradaEndereco[0].length() == TAMANHO_CEP)) {
+            if (entradaEndereco[0].length() != TAMANHO_CEP) {
                 throw new ValorInvalido("CEP INVALIDO");
             }
             return true;
@@ -30,6 +35,7 @@ public class VerificadorClientes {
         }
         return false;
     }
+
 
     protected static boolean verificarTelefone(String e) {
         return e.length() <= DIGITOS_MAXIMO_TELEFONE;
